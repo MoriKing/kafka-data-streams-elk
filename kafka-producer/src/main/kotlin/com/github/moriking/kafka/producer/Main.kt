@@ -1,4 +1,4 @@
-package com.github.moriking
+package com.github.moriking.kafka.producer
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
