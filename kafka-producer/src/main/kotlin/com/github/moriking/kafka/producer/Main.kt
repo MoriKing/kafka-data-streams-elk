@@ -1,33 +1,51 @@
 package com.github.moriking.kafka.producer
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.nio.file.FileSystems
 import java.nio.file.Paths
+import java.nio.file.StandardWatchEventKinds
 import java.util.*
 
-data class MetaData(val metadata: String)
+fun main(args: Array<String>) {
+    val logger = LoggerFactory.getLogger(Producer::class.java.name)
+    if (args.isEmpty()) {
+        logger.error("Directory is not specified")
+        return
+    }
 
-fun readJson(): List<MetaData> {
-    return try {
-        val mapper = jacksonObjectMapper()
-        val recordsList = listOf(
-            *mapper.readValue(Paths.get("/home/ezneimo/packages.json").toFile(), Array<MetaData>::class.java)
-        )
-        recordsList
-    } catch (ex: Exception) {
-        ex.printStackTrace()
-        emptyList()
+    logger.info("Setting up the json producer application")
+    val producer = Producer(logger, createKafkaProducer())
+    Runtime.getRuntime().addShutdownHook(Thread {
+        logger.info("stopping the json application...")
+        logger.info("closing producer...")
+        producer.close()
+        logger.info("done!")
+    })
+
+    File(args[0]).walk().maxDepth(1).onFail { file, exception ->
+        logger.error("Couldn't access file list of ${file.name}", exception)
+    }.forEach {
+        producer.processFile(it)
+    }
+
+    val watchService = FileSystems.getDefault().newWatchService()
+    val path = Paths.get(args[0])
+    path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE)
+    while (true) {
+        val watchKey = watchService.take()
+        watchKey?.pollEvents()?.forEach {
+            producer.processFile(File(args[0] + File.separator + it.context()))
+        }
+        watchKey?.reset()
     }
 }
 
 fun createKafkaProducer(): KafkaProducer<String, String> {
     val bootstrapServers = "0.0.0.0:9092"
-
-    // create Producer properties
     val properties = Properties()
     properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     properties.setProperty(
@@ -39,44 +57,14 @@ fun createKafkaProducer(): KafkaProducer<String, String> {
         StringSerializer::class.java.name
     )
 
-    // create safe Producer
     properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
     properties.setProperty(ProducerConfig.ACKS_CONFIG, "all")
-    properties.setProperty(ProducerConfig.RETRIES_CONFIG, Integer.toString(Int.MAX_VALUE))
-    properties.setProperty(
-        ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION,
-        "5"
-    ) // kafka 2.0 >= 1.1 so we can keep this as 5. Use 1 otherwise.
+    properties.setProperty(ProducerConfig.RETRIES_CONFIG, Int.MAX_VALUE.toString())
+    properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5")
 
-    // high throughput producer (at the expense of a bit of latency and CPU usage)
     properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy")
     properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20")
     properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, (32 * 1024).toString()) // 32 KB batch size
 
-    // create the producer
     return KafkaProducer(properties)
-}
-
-fun main() {
-    val logger = LoggerFactory.getLogger(MetaData::class.java.name)
-    logger.info("Setting up the json producer application")
-
-    val producer: KafkaProducer<String, String> = createKafkaProducer()
-
-    Runtime.getRuntime().addShutdownHook(Thread {
-        logger.info("stopping the json application...")
-        logger.info("closing producer...")
-        producer.close();
-        logger.info("done!")
-    })
-    val dataList = readJson()
-    dataList.forEach {
-        producer.send(ProducerRecord("metadata", null, it.metadata)) { _, e ->
-            if (e != null) {
-                logger.error("Something went wrong!", e)
-            }
-        }
-    }
-
-    logger.info("End of application")
 }
