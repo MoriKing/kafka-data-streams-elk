@@ -1,3 +1,4 @@
 rootProject.name = 'kafka-data-streams-elk'
 include 'kafka-producer'
+include 'kafka-streams'
 
