@@ -13,7 +13,7 @@ class Producer(private val logger: Logger, private val kafkaProducer: KafkaProdu
 
     fun processFile(file: File) {
         if (file.isFile)
-        print(file.readText())
+            print(file.readText())
     }
 
     fun processFiles(file: File) = readJson(file).forEach { data ->

@@ -7,27 +7,29 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.kstream.*
+import org.apache.kafka.streams.kstream.KTable
+import org.apache.kafka.streams.kstream.Materialized
+import org.apache.kafka.streams.kstream.Produced
 import java.util.*
 
 fun createTopology(): Topology {
     val builder = StreamsBuilder()
     val metadataRecords = builder.stream<String, String>("metadata")
-    val alarmsCount = metadataRecords
-        .mapValues { metaDatarecord -> parseMetaData(metaDatarecord)?.vnocAlarmID }
+    val alarmsCount: KTable<String?, Long>? = metadataRecords
+        .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }
         .selectKey { _, value -> value }
         .groupByKey() //count occurrences
         .count(Materialized.`as`("Counts"))
 
     // write the results back to kafka
-    alarmsCount.toStream().to("alarms-count", Produced.with(Serdes.String(), Serdes.Long()))
+    alarmsCount?.toStream()?.to("alarms-count", Produced.with(Serdes.String(), Serdes.Long()))
     return builder.build()
 }
 
 fun main() {
     val config = Properties()
     config[StreamsConfig.APPLICATION_ID_CONFIG] = "alarm-count-applications"
-    config[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = "127.0.0.1:9092"
+    config[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
     config[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
     config[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
     config[StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
@@ -48,4 +50,4 @@ fun parseMetaData(metaDataRecord: String): MetaData? {
     }
 }
 
-data class MetaData(val affectedNode: String, val vnocAlarmID: String, val alarmEventTime: String)
+class MetaData(val affectedNode: String, val vnocAlarmID: String, val alarmEventTime: String)

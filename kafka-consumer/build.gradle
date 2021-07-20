@@ -1,0 +1,16 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id 'com.google.cloud.tools.jib' version '3.1.2'
+}
+
+group 'com.github.moriking.kafka.consumer'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.slf4j:slf4j-simple:1.7.31'
+    implementation 'org.apache.kafka:kafka-clients:2.8.0'
+}
