@@ -8,9 +8,11 @@ version '1.0'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.31'
+    implementation 'com.github.jasrodis:dataviewer:-SNAPSHOT'
     implementation 'org.apache.kafka:kafka-clients:2.8.0'
 }
