@@ -7,21 +7,24 @@ import org.slf4j.Logger
 import java.io.File
 
 class Producer(private val logger: Logger, private val kafkaProducer: KafkaProducer<String, String>) {
+
     fun close() {
         kafkaProducer.close()
     }
 
     fun processFile(file: File) {
         if (file.isFile)
-            print(file.readText())
+            process(file)
     }
 
-    fun processFiles(file: File) = readJson(file).forEach { data ->
+    private fun process(file: File) = readJson(file).forEach { data ->
         kafkaProducer.send(ProducerRecord("metadata", null, data.metadata)) { _, e ->
             if (e != null) {
                 logger.error("Couldn't send metadata", e)
             }
         }
+        logger.info("Metadata is sent to Kafka:" + data.metadata)
+        Thread.sleep(10000);
     }
 
     private fun readJson(file: File): List<MetaData> {

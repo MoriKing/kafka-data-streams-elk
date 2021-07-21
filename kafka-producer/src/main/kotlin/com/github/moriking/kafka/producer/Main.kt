@@ -45,7 +45,7 @@ fun main(args: Array<String>) {
 }
 
 fun createKafkaProducer(): KafkaProducer<String, String> {
-    val bootstrapServers = "0.0.0.0:9092"
+    val bootstrapServers = "localhost:9092"
     val properties = Properties()
     properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     properties.setProperty(
@@ -61,7 +61,6 @@ fun createKafkaProducer(): KafkaProducer<String, String> {
     properties.setProperty(ProducerConfig.ACKS_CONFIG, "all")
     properties.setProperty(ProducerConfig.RETRIES_CONFIG, Int.MAX_VALUE.toString())
     properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5")
-
     properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy")
     properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20")
     properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, (32 * 1024).toString()) // 32 KB batch size
