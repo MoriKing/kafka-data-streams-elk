@@ -1,5 +1,6 @@
 package com.github.moriking.kafka.streams
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
@@ -10,7 +11,10 @@ import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.KTable
 import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.kstream.Produced
+import org.slf4j.LoggerFactory
 import java.util.*
+
+val logger = LoggerFactory.getLogger(StreamsBuilder::class.java.name)
 
 fun createTopology(): Topology {
     val builder = StreamsBuilder()
@@ -42,6 +46,7 @@ fun main() {
 
 fun parseMetaData(metaDataRecord: String): MetaData? {
     return try {
+        logger.info("One metadata record is processed...")
         val mapper = jacksonObjectMapper()
         mapper.readValue(metaDataRecord, MetaData::class.java)
     } catch (ex: Exception) {
@@ -50,4 +55,5 @@ fun parseMetaData(metaDataRecord: String): MetaData? {
     }
 }
 
-class MetaData(val affectedNode: String, val vnocAlarmID: String, val alarmEventTime: String)
+@JsonIgnoreProperties(ignoreUnknown = true)
+class MetaData(val affectedNode: String?, val vnocAlarmID: String?, val alarmEventTime: String?)
