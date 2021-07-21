@@ -12,12 +12,10 @@ fun main() {
     val logger = LoggerFactory.getLogger(KafkaConsumer::class.java.name)
     //todo: create visualizing client
     val consumer: KafkaConsumer<String, Long> = createConsumer("alarms-count")
-    // subscribe consumer to our topic(s)
-    //consumer.subscribe(Arrays.asList(topic))
 
-    // poll for new data
+    // polling for new record
     while (true) {
-        val records = consumer.poll(Duration.ofMillis(100)) // new in Kafka 2.0.0
+        val records = consumer.poll(Duration.ofMillis(100))
         for (record in records) {
             logger.info("Key: " + record.key() + ", Value: " + record.value())
             logger.info("Partition: " + record.partition() + ", Offset:" + record.offset())

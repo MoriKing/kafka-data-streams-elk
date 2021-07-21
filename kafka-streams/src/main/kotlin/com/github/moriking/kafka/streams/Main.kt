@@ -19,14 +19,35 @@ val logger = LoggerFactory.getLogger(StreamsBuilder::class.java.name)
 fun createTopology(): Topology {
     val builder = StreamsBuilder()
     val metadataRecords = builder.stream<String, String>("metadata")
-    val alarmsCount: KTable<String?, Long>? = metadataRecords
+
+    //alarms-count
+    val alarmsCountTopology: KTable<String?, Long>? = metadataRecords
         .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }
         .selectKey { _, value -> value }
-        .groupByKey() //count occurrences
+        .groupByKey()
         .count(Materialized.`as`("Counts"))
 
-    // write the results back to kafka
-    alarmsCount?.toStream()?.to("alarms-count", Produced.with(Serdes.String(), Serdes.Long()))
+    //nodes-alarms-count
+    val nodesAlarmsCountTopology: KTable<String?, Long>? = metadataRecords
+        .selectKey { _, metaDataRecord -> parseMetaData(metaDataRecord)?.affectedNode }
+        .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }
+        .groupByKey()
+        .count(Materialized.`as`("Counts"))
+
+    //hour-ERA015-count : all timestamps are considered to belong to the same time zone for simplicity
+    val hourEra015CountTopology: KTable<String?, Long>? = metadataRecords
+        .selectKey { _, metaDataRecord -> parseMetaData(metaDataRecord)?.alarmEventTime?.subSequence(0, 13).toString() }
+        .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }
+        .filter { _, value -> value == "ERA015" }
+        .groupByKey()
+        .count(Materialized.`as`("Counts"))
+
+
+    // write the results back to kafka topics
+    alarmsCountTopology?.toStream()?.to("alarms-count", Produced.with(Serdes.String(), Serdes.Long()))
+    nodesAlarmsCountTopology?.toStream()?.to("nodes-alarms-count", Produced.with(Serdes.String(), Serdes.Long()))
+    nodesAlarmsCountTopology?.toStream()?.to("hour-ERA015-count", Produced.with(Serdes.String(), Serdes.Long()))
+
     return builder.build()
 }
 
