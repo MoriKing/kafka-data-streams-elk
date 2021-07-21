@@ -6,14 +6,15 @@ import org.charts.dataviewer.api.data.PlotData
 import org.charts.dataviewer.api.trace.BarTrace
 
 class Plot(title: String, xTitle: String, yTitle: String) {
-  private val dataViewer = DataViewer(title)
-  private val values = mutableMapOf<String, Long>()
+  private val dataViewer = DataViewer(title.replace(" ", ""))
+  private val values = mutableMapOf<String, Long>("" to 0)
 
   init {
-    with (DataViewerConfiguration()) {
+    with(DataViewerConfiguration()) {
       plotTitle = title
       setxAxisTitle(xTitle)
       setyAxisTitle(yTitle)
+      showLegend(false)
       dataViewer.updateConfiguration(this)
     }
   }
@@ -22,21 +23,9 @@ class Plot(title: String, xTitle: String, yTitle: String) {
     values[key] = value
   }
 
-  fun build() {
-    dataViewer.resetPlot()
-
-    val barTrace = BarTrace<Any>()
-    barTrace.setxArray(values.keys.toTypedArray())
-    barTrace.setyArray(values.values.toTypedArray())
-    val plotData = PlotData(barTrace)
-    dataViewer.updatePlot(plotData)
+  fun build() = with(BarTrace<Any>()) {
+    setxArray(values.keys.toTypedArray())
+    setyArray(values.values.toTypedArray())
+    dataViewer.updatePlot(PlotData(this))
   }
-}
-
-fun main() {
-  val plot = Plot("title", "Xs", "Ys")
-  plot.updateValue("One", 12)
-  plot.updateValue("Two", 14)
-  plot.updateValue("Three", 2)
-  plot.build()
 }

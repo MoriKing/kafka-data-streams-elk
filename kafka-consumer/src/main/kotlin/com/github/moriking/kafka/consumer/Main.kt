@@ -10,7 +10,7 @@ import java.util.*
 
 fun main() {
     val logger = LoggerFactory.getLogger(KafkaConsumer::class.java.name)
-    //todo: create visualizing client
+    val plot = Plot("Alarm Count", "alarms", "counts")
     val consumer: KafkaConsumer<String, Long> = createConsumer("alarms-count")
 
     // polling for new record
@@ -19,7 +19,9 @@ fun main() {
         for (record in records) {
             logger.info("Key: " + record.key() + ", Value: " + record.value())
             logger.info("Partition: " + record.partition() + ", Offset:" + record.offset())
+            plot.updateValue(record.key(), record.value())
         }
+        plot.build()
         //todo: update the client with records every 10 seconds
     }
 }
