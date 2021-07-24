@@ -12,10 +12,14 @@ const val ALARMS_COUNT_TOPIC = "alarms-count"
 const val NODES_ALARMS_COUNT_TOPIC = "nodes-alarms-count"
 const val HOUR_ERA015_TOPIC = "hour-ERA015-count"
 
-fun main() {
+fun main(args: Array<String>) {
     val logger = LoggerFactory.getLogger(KafkaConsumer::class.java.name)
+    if (args.isEmpty()) {
+        logger.error("Server:port is not specified")
+        return
+    }
     val alarmCountPlot = Plot("Alarm Count", "alarms", "counts")
-    val nodesAlarmCountPlot = Plot("Nodes Alarm Count", "alarms", "counts")
+    val nodesAlarmCountPlot = Plot("Nodes Alarm Count", "alarms", "counts", 150)
     val hourEra015Plot = Plot("Hour ERA015 count", "hour", "counts", 150)
     val consumer: KafkaConsumer<String, Long> = createConsumer(listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 

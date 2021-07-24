@@ -9,10 +9,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-fun main() {
+fun main(args: Array<String>) {
+    val logger = LoggerFactory.getLogger(Streams::class.java.name)
+    if (args.isEmpty()) {
+        logger.error("Server:port is not specified")
+        return
+    }
+
     val config = Properties()
     config[StreamsConfig.APPLICATION_ID_CONFIG] = "alarm-count-applications"
-    config[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
+    config[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = args[0]
     config[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
     config[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
     config[StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG] = Serdes.String().javaClass

@@ -11,14 +11,14 @@ import java.nio.file.StandardWatchEventKinds
 import java.util.*
 
 fun main(args: Array<String>) {
-    val logger = LoggerFactory.getLogger(KafkaProducer::class.java.name)
-    if (args.isEmpty()) {
-        logger.error("Directory is not specified")
+    val logger = LoggerFactory.getLogger(Producer::class.java.name)
+    if (args.size < 2) {
+        logger.error("Directory and/or server:port are not specified")
         return
     }
 
     logger.info("Setting up the json producer application")
-    val producer = Producer(logger, createKafkaProducer())
+    val producer = Producer(logger, createProducer(args[1]))
 
     // shutdown gracefully
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -46,8 +46,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun createKafkaProducer(): KafkaProducer<String, String> {
-    val bootstrapServers = "localhost:9092"
+fun createProducer(bootstrapServers: String): KafkaProducer<String, String> {
     val properties = Properties()
     properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     properties.setProperty(

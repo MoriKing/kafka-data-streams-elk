@@ -1,27 +1,17 @@
-version: '2'
-
-networks:
-  kafka-net:
-    driver: bridge
+version: '3'
 
 services:
   zookeeper-server:
     image: 'bitnami/zookeeper:latest'
-    networks:
-      - kafka-net
-    ports:
-      - '2181:2181'
+    network_mode: "host"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
 
   kafka-server:
     image: 'bitnami/kafka:latest'
-    networks:
-      - kafka-net
-    ports:
-      - '9092:9092'
+    network_mode: "host"
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=localhost:2181
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
@@ -31,29 +21,21 @@ services:
     image: 'kafka-producer:1.0'
     volumes:
       - ./data:/etc/data
-    command: /etc/data
-    networks:
-      - kafka-net
-    ports:
-      - '9092:9092'
+    command: /etc/data localhost:9092
+    network_mode: "host"
     depends_on:
       - kafka-server
 
   streams:
     image: 'kafka-streams:1.0'
-    networks:
-      - kafka-net
-    ports:
-      - '9092:9092'
+    command: localhost:9092
+    network_mode: "host"
     depends_on:
       - producer
 
   consumer:
     image: 'kafka-consumer:1.0'
-    networks:
-      - kafka-net
-    ports:
-      - '9092:9092'
-      - '8090:8090'
+    command: localhost:9092
+    network_mode: "host"
     depends_on:
       - streams
