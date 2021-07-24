@@ -29,28 +29,25 @@ services:
 
   producer:
     image: 'kafka-producer:1.0'
-    command: dirNameHere
-    networks:
-      - kafka-net
-    #ports:
-    #  - '9200:9200'
-
-  elastic-search:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.3
-    container_name: es
+    volumes:
+      - ./data:/etc/data
+    command: /etc/data
     networks:
       - kafka-net
     ports:
-      - '9200:9200'
-      - '9300:9300'
-    environment:
-      - discovery.type=single-node
+      - '9092:9092'
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.13.3
+  streams:
+    image: 'kafka-streams:1.0'
     networks:
       - kafka-net
     ports:
-      - '5601:5601'
-    environment:
-      - ELASTICSEARCH_HOSTS=http://es:9200
+      - '9092:9092'
+
+  consumer:
+    image: 'kafka-consumer:1.0'
+    networks:
+      - kafka-net
+    ports:
+      - '9092:9092'
+      - '8090:8090'
