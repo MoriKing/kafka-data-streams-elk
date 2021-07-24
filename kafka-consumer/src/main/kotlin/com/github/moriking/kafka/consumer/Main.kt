@@ -16,7 +16,7 @@ fun main() {
     val logger = LoggerFactory.getLogger(KafkaConsumer::class.java.name)
     val alarmCountPlot = Plot("Alarm Count", "alarms", "counts")
     val nodesAlarmCountPlot = Plot("Nodes Alarm Count", "alarms", "counts")
-    val hourEra015Plot = Plot("Hour ERA015 count", "hour", "counts")
+    val hourEra015Plot = Plot("Hour ERA015 count", "hour", "counts", 150)
     val consumer: KafkaConsumer<String, Long> = createConsumer(listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 
     // polling for new record
