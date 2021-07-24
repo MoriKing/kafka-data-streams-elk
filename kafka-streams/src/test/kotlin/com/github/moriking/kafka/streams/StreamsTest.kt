@@ -2,10 +2,11 @@ package com.github.moriking.kafka.streams
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -13,8 +14,8 @@ import java.util.*
 internal class StreamsTest {
     private val stream = Streams()
     private val config: Properties = Properties()
-    lateinit var ttd: TopologyTestDriver
-
+    private lateinit var ttd: TopologyTestDriver
+    private lateinit var inputTopic: TestInputTopic<String, String>
 
     init {
         config.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "stream.topology.test")
@@ -23,45 +24,75 @@ internal class StreamsTest {
         config.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().javaClass.name)
     }
 
+    companion object {
+        val TEST_RECORDS = listOf(
+            "{\"affectedNode\":\"LX000228\",\"affectedSite\":\"LX000228\",\"alarmCategory\":\"FAULT\",\"alarmGroup\":" +
+                    "\"003--936265541-SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228,ENodeBFunction=1,NbIotCell=gracani-1469856\"," +
+                    "\"alarmCSN\":\"1469856\",\"alarmID\":\"9175114\",\"alarmMO\":\"SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228," +
+                    "ENodeBFunction=1,NbIotCell=gracani\",\"alarmNotificationType\":\"Major\",\"alarmLastSeqNo\":\"1469856\",\"alarmEventTime\":" +
+                    "\"2020-01-21T22:47:28+02:00\",\"vnocAlarmID\":\"ERA015\"}",
+
+            "{\"affectedNode\":\"LX000220\",\"affectedSite\":\"LX000228\",\"alarmCategory\":\"FAULT\",\"alarmGroup\":" +
+                    "\"003--936265541-SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228,ENodeBFunction=1,NbIotCell=gracani-1469856\"," +
+                    "\"alarmCSN\":\"1469856\",\"alarmID\":\"9175114\",\"alarmMO\":\"SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228," +
+                    "ENodeBFunction=1,NbIotCell=gracani\",\"alarmNotificationType\":\"Major\",\"alarmLastSeqNo\":\"1469856\",\"alarmEventTime\":" +
+                    "\"2020-01-21T22:50:28+02:00\",\"vnocAlarmID\":\"ERA010\"}",
+
+            "{\"affectedNode\":\"LX000220\",\"affectedSite\":\"LX000228\",\"alarmCategory\":\"FAULT\",\"alarmGroup\":" +
+                    "\"003--936265541-SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228,ENodeBFunction=1,NbIotCell=gracani-1469856\"," +
+                    "\"alarmCSN\":\"1469856\",\"alarmID\":\"9175114\",\"alarmMO\":\"SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228," +
+                    "ENodeBFunction=1,NbIotCell=gracani\",\"alarmNotificationType\":\"Major\",\"alarmLastSeqNo\":\"1469856\",\"alarmEventTime\":" +
+                    "\"2020-01-21T22:57:28+02:00\",\"vnocAlarmID\":\"ERA015\"}"
+        )
+    }
+
+    @BeforeEach
+    internal fun setUp() {
+        ttd = TopologyTestDriver(stream.createTopology(), config)
+        inputTopic = ttd.createInputTopic(Streams.INPUT_TOPIC, Serdes.String().serializer(), Serdes.String().serializer());
+    }
+
     @Test
-    fun topologyTest() {
-        val topology = stream.createTopology()
-        ttd = TopologyTestDriver(topology, config)
-        val inputTopic = ttd.createInputTopic(stream.INPUT_TOPIC, Serdes.String().serializer(), Serdes.String().serializer());
-        val outputTopicAlarmsCount = ttd.createOutputTopic(stream.OUTPUT_TOPIC_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
-        val outputTopicNodesAlarmsCount = ttd.createOutputTopic(stream.OUTPUT_TOPIC_NODES_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
-        val outputTopicHourEra015Count = ttd.createOutputTopic(stream.OUTPUT_TOPIC_HOUR_ERA015_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
+    fun alarmsCountTest() {
 
-        //assert(inputTopic.)
+        val outputTopicAlarmsCount =
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
+
         assert(outputTopicAlarmsCount.isEmpty)
+        inputTopic.pipeValueList(TEST_RECORDS)
+
+        val records = outputTopicAlarmsCount.readRecordsToList()
+        assertEquals("ERA015", records.last().key)
+        assertEquals(2, records.last().value)
+        assertEquals("ERA010", records[records.lastIndex - 1].key)
+        assertEquals(1, records[records.lastIndex - 1].value)
+    }
+
+    @Test
+    fun nodesAlarmsCountTest() {
+        val outputTopicNodesAlarmsCount =
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_NODES_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
         assert(outputTopicNodesAlarmsCount.isEmpty)
+        inputTopic.pipeValueList(TEST_RECORDS)
+
+        val records = outputTopicNodesAlarmsCount.readRecordsToList()
+        assertEquals("LX000220", records.last().key)
+        assertEquals(2, records.last().value)
+        assertEquals("LX000228", records.first().key)
+        assertEquals(1, records.first().value)
+
+    }
+
+    @Test
+    fun hourEra015CountTest() {
+        val outputTopicHourEra015Count =
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_HOUR_ERA015_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
         assert(outputTopicHourEra015Count.isEmpty)
+        inputTopic.pipeValueList(TEST_RECORDS)
 
-        inputTopic.pipeInput(null,"{\"affectedNode\":\"LX000228\",\"affectedSite\":\"LX000228\",\"alarmCategory\":\"FAULT\",\"alarmGroup\":" +
-                "\"003--936265541-SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228,ENodeBFunction=1,NbIotCell=gracani-1469856\"," +
-                "\"alarmCSN\":\"1469856\",\"alarmID\":\"9175114\",\"alarmMO\":\"SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228," +
-                "ENodeBFunction=1,NbIotCell=gracani\",\"alarmNotificationType\":\"Major\",\"alarmLastSeqNo\":\"1469856\",\"alarmEventTime\":" +
-                "\"2020-01-21T22:47:28+02:00\",\"vnocAlarmID\":\"ERA015\"}")
-
-//        inputTopic.pipeValueList(
-//            listOf("{\"affectedNode\":\"LX000228\",\"affectedSite\":\"LX000228\",\"alarmCategory\":\"FAULT\",\"alarmGroup\":" +
-//                "\"003--936265541-SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228,ENodeBFunction=1,NbIotCell=gracani-1469856\"," +
-//                "\"alarmCSN\":\"1469856\",\"alarmID\":\"9175114\",\"alarmMO\":\"SubNetwork=Osijek,MeContext=LX000228,ManagedElement=LX000228," +
-//                "ENodeBFunction=1,NbIotCell=gracani\",\"alarmNotificationType\":\"Major\",\"alarmLastSeqNo\":\"1469856\",\"alarmEventTime\":" +
-//                "\"2020-01-21T22:47:28+02:00\",\"vnocAlarmID\":\"ERA015\"}"))
-
-
-        var record = outputTopicAlarmsCount.readRecord()
-        assertEquals("ERA015", record.key)
-        //assertEquals("1", record.value)
-
-        record = outputTopicNodesAlarmsCount.readRecord()
-        assertEquals("LX000228", record.key)
-        assertEquals(1, record.value)
-
-        record = outputTopicHourEra015Count.readRecord()
-        assertEquals("2020-01-21T22", record.key)
-        assertEquals(1, record.value)
+        val records = outputTopicHourEra015Count.readRecordsToList()
+        assertEquals("2020-01-21T22", records.last().key)
+        assertEquals(2, records.last().value)
     }
 
     @AfterEach
