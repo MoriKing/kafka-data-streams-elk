@@ -36,6 +36,8 @@ services:
       - kafka-net
     ports:
       - '9092:9092'
+    depends_on:
+      - kafka-server
 
   streams:
     image: 'kafka-streams:1.0'
@@ -43,6 +45,8 @@ services:
       - kafka-net
     ports:
       - '9092:9092'
+    depends_on:
+      - producer
 
   consumer:
     image: 'kafka-consumer:1.0'
@@ -51,3 +55,5 @@ services:
     ports:
       - '9092:9092'
       - '8090:8090'
+    depends_on:
+      - streams
