@@ -11,7 +11,7 @@ import java.nio.file.StandardWatchEventKinds
 import java.util.*
 
 fun main(args: Array<String>) {
-    val logger = LoggerFactory.getLogger(Producer::class.java.name)
+    val logger = LoggerFactory.getLogger(KafkaProducer::class.java.name)
     if (args.isEmpty()) {
         logger.error("Directory is not specified")
         return
@@ -19,8 +19,9 @@ fun main(args: Array<String>) {
 
     logger.info("Setting up the json producer application")
     val producer = Producer(logger, createKafkaProducer())
+
+    // shutdown gracefully
     Runtime.getRuntime().addShutdownHook(Thread {
-        logger.info("stopping the json application...")
         logger.info("closing producer...")
         producer.close()
         logger.info("done!")
@@ -35,6 +36,7 @@ fun main(args: Array<String>) {
     val watchService = FileSystems.getDefault().newWatchService()
     val path = Paths.get(args[0])
     path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE)
+
     while (true) {
         val watchKey = watchService.take()
         watchKey?.pollEvents()?.forEach {

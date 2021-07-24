@@ -7,7 +7,6 @@ import org.slf4j.Logger
 import java.io.File
 
 class Producer(private val logger: Logger, private val kafkaProducer: KafkaProducer<String, String>) {
-
     fun close() {
         kafkaProducer.close()
     }
@@ -24,7 +23,7 @@ class Producer(private val logger: Logger, private val kafkaProducer: KafkaProdu
             }
         }
         logger.info("Metadata is sent to Kafka:" + data.metadata)
-        Thread.sleep(10000);
+        Thread.sleep(10);
     }
 
     private fun readJson(file: File): List<MetaData> {
