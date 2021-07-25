@@ -1,4 +1,4 @@
-package com.github.moriking.kafka.streams
+package com.github.moriney.kafka.streams
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsConfig

@@ -1,4 +1,4 @@
-package com.github.moriking.kafka.consumer
+package com.github.moriney.kafka.consumer
 
 import org.charts.dataviewer.DataViewer
 import org.charts.dataviewer.api.config.DataViewerConfiguration

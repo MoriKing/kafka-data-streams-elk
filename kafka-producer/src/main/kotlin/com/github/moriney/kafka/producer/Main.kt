@@ -1,4 +1,4 @@
-package com.github.moriking.kafka.producer
+package com.github.moriney.kafka.producer
 
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig

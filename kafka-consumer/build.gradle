@@ -3,7 +3,7 @@ plugins {
     id 'com.google.cloud.tools.jib' version '3.1.2'
 }
 
-group 'com.github.moriking.kafka.consumer'
+group 'com.github.moriney.kafka.consumer'
 version '1.0'
 
 repositories {

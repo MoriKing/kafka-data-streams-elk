@@ -1,4 +1,4 @@
-package com.github.moriking.kafka.streams
+package com.github.moriney.kafka.streams
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
     config[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
     config[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
     config[StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG] = Serdes.String().javaClass
-    val stream = Streams()
+    val stream = Streams(logger)
     val streams = KafkaStreams(stream.createTopology(), config)
     streams.start()
 

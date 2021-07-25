@@ -1,4 +1,4 @@
-package com.github.moriking.kafka.producer
+package com.github.moriney.kafka.producer
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -23,7 +23,6 @@ class Producer(private val logger: Logger, private val kafkaProducer: KafkaProdu
             }
         }
         logger.info("Metadata is sent to Kafka:" + data.metadata)
-        Thread.sleep(10);
     }
 
     private fun readJson(file: File): List<MetaData> {
