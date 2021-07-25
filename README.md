@@ -19,9 +19,7 @@ The project consits of:
 - Apache Zookeeper 
 
 # How to run
-To run the project demo on localhost execute the `run.sh`
-
-`run.sh` 
+To run the project demo on localhost execute the `run.sh` that:   
 - creates images for kafka stand-alone servers using Jib Gradle plugin
 - runs created images locally along with Apache Kafka and Zookeeper clusters using Docker Compose with `kafka.yaml` setting file  
     * the host addresses and ports are configurable through `kafka.yaml`
@@ -31,9 +29,9 @@ To run the project demo on localhost execute the `run.sh`
 
 # Output data view
 - Jetty server creates the data views on the following addresses:  
-    * [localhost:8090/view/AlarmCount](localhost:8090/view/AlarmCount)
-    * [localhost:8090/view/NodesAlarmCount](localhost:8090/view/NodesAlarmCount)
-    * [localhost:8090/view/HourERA015Count](localhost:8090/view/HourERA015Count)
+    * [localhost:8090/view/AlarmCount](http://localhost:8090/view/AlarmCount)  
+    * [localhost:8090/view/NodesAlarmCount](http://localhost:8090/view/NodesAlarmCount)  
+    * [localhost:8090/view/HourERA015Count](http://localhost:8090/view/HourERA015Count)  
 
-- The data views are available only after consumer receives its first record  
-- data views should be refreshed manually to present the latest figures
+- The data views are available only after consumer receives its first record 
+
