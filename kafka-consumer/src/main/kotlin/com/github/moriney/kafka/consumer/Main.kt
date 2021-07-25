@@ -18,9 +18,9 @@ fun main(args: Array<String>) {
         logger.error("Server:port is not specified")
         return
     }
-    val alarmCountPlot = Plot("Alarm Count", "alarms", "counts")
-    val nodesAlarmCountPlot = Plot("Nodes Alarm Count", "alarms", "counts", 150)
-    val hourEra015Plot = Plot("Hour ERA015 count", "hour", "counts", 150)
+    val alarmCountPlot by lazy { Plot("Alarm Count", "alarms", "counts") }
+    val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "alarms", "counts", 150) }
+    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "hour", "counts", 150) }
     val consumer: KafkaConsumer<String, Long> = createConsumer(listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 
     // polling for new record
