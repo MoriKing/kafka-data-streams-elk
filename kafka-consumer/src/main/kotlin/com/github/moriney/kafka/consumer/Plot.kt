@@ -4,12 +4,14 @@ import org.charts.dataviewer.DataViewer
 import org.charts.dataviewer.api.config.DataViewerConfiguration
 import org.charts.dataviewer.api.data.PlotData
 import org.charts.dataviewer.api.trace.BarTrace
+import org.charts.dataviewer.api.trace.GenericTrace
 import java.util.*
 
 class Plot(
   private val title: String,
   private val xTitle: String,
   private val yTitle: String,
+  private val plotType: () -> GenericTrace<Any>,
   private val marginBottom: Int = 60
 ) {
   private val dataViewer = DataViewer(title.replace(" ", ""))
@@ -22,7 +24,7 @@ class Plot(
   fun build() {
     dataViewer.resetPlot()
     updateConfiguration()
-    with(BarTrace<Any>()) {
+    with(plotType()) {
       setxArray(values.keys.toTypedArray())
       setyArray(values.values.toTypedArray())
       dataViewer.updatePlot(PlotData(this))

@@ -4,6 +4,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.LongDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.charts.dataviewer.api.trace.BarTrace
+import org.charts.dataviewer.api.trace.TimeSeriesTrace
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
@@ -18,10 +20,10 @@ fun main(args: Array<String>) {
         logger.error("Server:port is not specified")
         return
     }
-    val alarmCountPlot by lazy { Plot("Alarm Count", "alarms", "counts") }
-    val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "alarms", "counts", 150) }
-    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "hour", "counts", 150) }
-    val consumer: KafkaConsumer<String, Long> = createConsumer(listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
+    val alarmCountPlot by lazy { Plot("Alarm Count", "alarms", "counts", ::BarTrace) }
+    val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "alarms", "counts", ::BarTrace, 150) }
+    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "", "counts", ::TimeSeriesTrace, 150) }
+    val consumer: KafkaConsumer<String, Long> = createConsumer(args[0], listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 
     // polling for new record
     while (true) {
@@ -43,9 +45,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun createConsumer(topics: List<String>): KafkaConsumer<String, Long> {
-    val bootstrapServers = "localhost:9092"
-
+fun createConsumer(bootstrapServers: String, topics: List<String>): KafkaConsumer<String, Long> {
     val groupId = "consumer-histogram"
 
     // consumer configs
