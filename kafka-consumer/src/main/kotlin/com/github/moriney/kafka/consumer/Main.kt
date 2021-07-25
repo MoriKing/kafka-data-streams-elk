@@ -8,6 +8,8 @@ import org.charts.dataviewer.api.trace.BarTrace
 import org.charts.dataviewer.api.trace.TimeSeriesTrace
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val ALARMS_COUNT_TOPIC = "alarms-count"
@@ -21,8 +23,8 @@ fun main(args: Array<String>) {
         return
     }
     val alarmCountPlot by lazy { Plot("Alarm Count", "alarms", "counts", ::BarTrace) }
-    val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "alarms", "counts", ::BarTrace, 150) }
-    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "", "counts", ::TimeSeriesTrace, 150) }
+    val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "nodes", "alarm counts", ::BarTrace, 150) }
+    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "", "ERA015 counts", ::TimeSeriesTrace) }
     val consumer: KafkaConsumer<String, Long> = createConsumer(args[0], listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 
     // polling for new record
@@ -32,7 +34,16 @@ fun main(args: Array<String>) {
             when (record.topic()) {
                 ALARMS_COUNT_TOPIC -> alarmCountPlot.updateValue(record.key(), record.value())
                 NODES_ALARMS_COUNT_TOPIC -> nodesAlarmCountPlot.updateValue(record.key(), record.value())
-                HOUR_ERA015_TOPIC -> hourEra015Plot.updateValue(record.key(), record.value())
+                HOUR_ERA015_TOPIC -> {
+                    try {
+                        val dateTime = record.key().toLocalDateTime()
+                        hourEra015Plot.updateIfAbsent(dateTime.minusHours(1).toTimeString(), 0)
+                        hourEra015Plot.updateIfAbsent(dateTime.plusHours(1).toTimeString(), 0)
+                        hourEra015Plot.updateValue(record.key(), record.value())
+                    } catch (ex: Exception) {
+                        logger.error("Unable to parse timestamp", ex)
+                    }
+                }
             }
             logger.info("Key: " + record.key() + ", Value: " + record.value())
             logger.info("Partition: " + record.partition() + ", Offset:" + record.offset())
@@ -45,7 +56,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun createConsumer(bootstrapServers: String, topics: List<String>): KafkaConsumer<String, Long> {
+private fun createConsumer(bootstrapServers: String, topics: List<String>): KafkaConsumer<String, Long> {
     val groupId = "consumer-histogram"
 
     // consumer configs
@@ -60,3 +71,7 @@ fun createConsumer(bootstrapServers: String, topics: List<String>): KafkaConsume
     consumer.subscribe(topics)
     return consumer
 }
+
+private val timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+private fun String.toLocalDateTime() = LocalDateTime.parse(this, timeFormatter)
+private fun LocalDateTime.toTimeString() = format(timeFormatter)

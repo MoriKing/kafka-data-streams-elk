@@ -99,4 +99,10 @@ internal class StreamsTest {
     fun tearDown() {
         ttd.close()
     }
+
+    @Test
+    fun convertToUtcHour() {
+        assertEquals("2011-12-03 09:00:00",stream.convertToUtcHour("2011-12-03T10:15:30+01:00"))
+        assertEquals("2011-12-03 06:00:00",stream.convertToUtcHour("2011-12-03T10:15:30+04:00"))
+    }
 }

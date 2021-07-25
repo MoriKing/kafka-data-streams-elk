@@ -5,6 +5,7 @@ import org.charts.dataviewer.api.config.DataViewerConfiguration
 import org.charts.dataviewer.api.data.PlotData
 import org.charts.dataviewer.api.trace.BarTrace
 import org.charts.dataviewer.api.trace.GenericTrace
+import org.charts.dataviewer.utils.TraceMode
 import java.util.*
 
 class Plot(
@@ -19,6 +20,10 @@ class Plot(
 
   fun updateValue(key: String, value: Long) {
     values[key] = value
+  }
+
+  fun updateIfAbsent(key: String, value: Long) {
+    values.putIfAbsent(key, value)
   }
 
   fun build() {

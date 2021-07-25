@@ -10,6 +10,11 @@ import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class Streams(private val logger: Logger = LoggerFactory.getLogger(Streams::class.java.name)) {
     companion object {
@@ -44,7 +49,7 @@ class Streams(private val logger: Logger = LoggerFactory.getLogger(Streams::clas
 
         //hour-ERA015-count : all timestamps are considered to belong to the same time zone for simplicity
         val hourEra015CountTopology: KTable<String?, Long> = hourEra015CountStream
-            .selectKey { _, metaDataRecord -> parseMetaData(metaDataRecord)?.alarmEventTime?.subSequence(0, 13).toString() }
+            .selectKey { _, metaDataRecord -> parseMetaData(metaDataRecord)?.alarmEventTime?.let { convertToUtcHour(it) } }
             .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }
             .filter { key, value -> key != null && value == "ERA015" }
             .groupByKey()
@@ -65,6 +70,19 @@ class Streams(private val logger: Logger = LoggerFactory.getLogger(Streams::clas
             mapper.readValue(metaDataRecord, MetaData::class.java)
         } catch (ex: Exception) {
             logger.error("Unable to parse metadata record", ex)
+            null
+        }
+    }
+
+    fun convertToUtcHour(timeStamp: String): String? {
+        return try {
+            val isoOffsetTimeStamp = ZonedDateTime.parse(timeStamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                .withZoneSameInstant(ZoneOffset.UTC)
+                .toLocalDateTime()
+            val hourlyMappedPattern = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:00:00")
+            isoOffsetTimeStamp.format(hourlyMappedPattern)
+        } catch (ex: Exception) {
+            logger.error("Unable to parse timestamp", ex)
             null
         }
     }
