@@ -10,8 +10,6 @@ import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -47,7 +45,7 @@ class Streams(private val logger: Logger = LoggerFactory.getLogger(Streams::clas
             .groupByKey()
             .count(Materialized.`as`("NodesAlarmsCountsStore"))
 
-        //hour-ERA015-count : all timestamps are considered to belong to the same time zone for simplicity
+        //hour-ERA015-count : all timestamps are converted to UTC for homogeneity
         val hourEra015CountTopology: KTable<String?, Long> = hourEra015CountStream
             .selectKey { _, metaDataRecord -> parseMetaData(metaDataRecord)?.alarmEventTime?.let { convertToUtcHour(it) } }
             .mapValues { metaDataRecord -> parseMetaData(metaDataRecord)?.vnocAlarmID }

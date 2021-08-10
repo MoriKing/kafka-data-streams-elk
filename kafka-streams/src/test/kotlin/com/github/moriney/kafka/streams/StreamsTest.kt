@@ -49,14 +49,14 @@ internal class StreamsTest {
     @BeforeEach
     internal fun setUp() {
         ttd = TopologyTestDriver(stream.createTopology(), config)
-        inputTopic = ttd.createInputTopic(Streams.INPUT_TOPIC, Serdes.String().serializer(), Serdes.String().serializer());
+        inputTopic = ttd.createInputTopic(Streams.INPUT_TOPIC, Serdes.String().serializer(), Serdes.String().serializer())
     }
 
     @Test
     fun alarmsCountTest() {
 
         val outputTopicAlarmsCount =
-            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer())
 
         assert(outputTopicAlarmsCount.isEmpty)
         inputTopic.pipeValueList(TEST_RECORDS)
@@ -71,7 +71,7 @@ internal class StreamsTest {
     @Test
     fun nodesAlarmsCountTest() {
         val outputTopicNodesAlarmsCount =
-            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_NODES_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_NODES_ALARMS_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer())
         assert(outputTopicNodesAlarmsCount.isEmpty)
         inputTopic.pipeValueList(TEST_RECORDS)
 
@@ -86,12 +86,12 @@ internal class StreamsTest {
     @Test
     fun hourEra015CountTest() {
         val outputTopicHourEra015Count =
-            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_HOUR_ERA015_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer());
+            ttd.createOutputTopic(Streams.OUTPUT_TOPIC_HOUR_ERA015_COUNT, Serdes.String().deserializer(), Serdes.Long().deserializer())
         assert(outputTopicHourEra015Count.isEmpty)
         inputTopic.pipeValueList(TEST_RECORDS)
 
         val records = outputTopicHourEra015Count.readRecordsToList()
-        assertEquals("2020-01-21T22", records.last().key)
+        assertEquals(stream.convertToUtcHour("2020-01-21T22:00:00+02:00"), records.last().key)
         assertEquals(2, records.last().value)
     }
 
@@ -102,7 +102,7 @@ internal class StreamsTest {
 
     @Test
     fun convertToUtcHour() {
-        assertEquals("2011-12-03 09:00:00",stream.convertToUtcHour("2011-12-03T10:15:30+01:00"))
-        assertEquals("2011-12-03 06:00:00",stream.convertToUtcHour("2011-12-03T10:15:30+04:00"))
+        assertEquals("2011-12-03 09:00:00", stream.convertToUtcHour("2011-12-03T10:15:30+01:00"))
+        assertEquals("2011-12-03 06:00:00", stream.convertToUtcHour("2011-12-03T10:15:30+04:00"))
     }
 }

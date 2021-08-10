@@ -5,7 +5,7 @@ Reads streams of data through Kafka and generates graphs:
 * Timeline of ERA015 alarm counts per hour
 
 # Architecture and requirements
-The project is implemented in Kotlin and is build using Gradle 7.1.1. Docker and Docker Compose are required to run the project.
+The project is implemented in Kotlin and is built using Gradle 7.1.1. Docker and Docker Compose are required to run the project.
 
 The project consits of:
 - A stand-alone Kafka producer  

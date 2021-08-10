@@ -20,11 +20,9 @@ fun main(args: Array<String>) {
     logger.info("Setting up the json producer application")
     val producer = Producer(logger, createProducer(args[1]))
 
-    // shutdown gracefully
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("closing producer...")
         producer.close()
-        logger.info("done!")
     })
 
     File(args[0]).walk().maxDepth(1).onFail { file, exception ->
@@ -49,15 +47,8 @@ fun main(args: Array<String>) {
 fun createProducer(bootstrapServers: String): KafkaProducer<String, String> {
     val properties = Properties()
     properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
-    properties.setProperty(
-        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-        StringSerializer::class.java.name
-    )
-    properties.setProperty(
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-        StringSerializer::class.java.name
-    )
-
+    properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
+    properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
     properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
     properties.setProperty(ProducerConfig.ACKS_CONFIG, "all")
     properties.setProperty(ProducerConfig.RETRIES_CONFIG, Int.MAX_VALUE.toString())

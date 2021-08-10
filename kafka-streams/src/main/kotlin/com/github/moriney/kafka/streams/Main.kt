@@ -3,9 +3,7 @@ package com.github.moriney.kafka.streams
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
-import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -26,7 +24,6 @@ fun main(args: Array<String>) {
     val streams = KafkaStreams(stream.createTopology(), config)
     streams.start()
 
-    // shutdown hook to correctly close the streams application
     Runtime.getRuntime().addShutdownHook(Thread { streams.close() })
 }
 

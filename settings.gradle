@@ -1,4 +1,4 @@
-rootProject.name = 'kafka-data-streams-elk'
+rootProject.name = 'kafka-data-streams'
 include 'kafka-producer'
 include 'kafka-streams'
 include 'kafka-consumer'

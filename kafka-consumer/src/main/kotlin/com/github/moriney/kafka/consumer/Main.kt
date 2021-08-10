@@ -24,8 +24,9 @@ fun main(args: Array<String>) {
     }
     val alarmCountPlot by lazy { Plot("Alarm Count", "alarms", "counts", ::BarTrace) }
     val nodesAlarmCountPlot by lazy { Plot("Nodes Alarm Count", "nodes", "alarm counts", ::BarTrace, 150) }
-    val hourEra015Plot by lazy { Plot("Hour ERA015 count", "", "ERA015 counts", ::TimeSeriesTrace) }
-    val consumer: KafkaConsumer<String, Long> = createConsumer(args[0], listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
+    val hourEra015Plot by lazy { Plot("Hour ERA015 Count", "", "ERA015 counts", ::TimeSeriesTrace) }
+    val consumer: KafkaConsumer<String, Long> =
+        createConsumer(args[0], listOf(ALARMS_COUNT_TOPIC, NODES_ALARMS_COUNT_TOPIC, HOUR_ERA015_TOPIC))
 
     // polling for new record
     while (true) {
