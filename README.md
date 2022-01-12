@@ -19,6 +19,7 @@ The project consits of:
 - Apache Zookeeper 
 
 # How to run
+(only on Linux operating systems)
 To run the project demo on localhost execute the `run.sh` that:   
 - creates images for kafka stand-alone servers using Jib Gradle plugin
 - runs created images locally along with Apache Kafka and Zookeeper clusters using Docker Compose with `kafka.yaml` setting file  
